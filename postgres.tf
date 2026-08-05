@@ -5,6 +5,8 @@ data "ns_connection" "postgres" {
 
 locals {
   db_endpoint        = data.ns_connection.postgres.outputs.db_endpoint
+  db_subdomain       = split(":", local.db_endpoint)[0]
+  db_port            = split(":", local.db_endpoint)[1]
   db_admin_func_name = data.ns_connection.postgres.outputs.db_admin_function_name
   db_admin_version   = try(data.ns_connection.postgres.outputs.db_admin_version, "0.6")
   postgres_ssl_mode  = try(data.ns_connection.postgres.outputs.postgres_ssl_mode, "prefer")
@@ -15,9 +17,8 @@ locals {
 }
 
 locals {
-  target_database = coalesce(var.target_database, local.block_name)
-  owner_role      = coalesce(var.owner_role, local.target_database)
-  username        = "ns_restore_${random_string.resource_suffix.result}"
+  owner_role = coalesce(var.owner_role, local.block_name)
+  username   = "ns_restore_${random_string.resource_suffix.result}"
 
   // Connects to `postgres` rather than the target: a session connected to a database cannot rename
   // it, and the swap renames two.
