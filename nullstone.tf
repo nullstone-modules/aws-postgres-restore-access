@@ -17,9 +17,10 @@ resource "random_string" "resource_suffix" {
   special = false
 }
 
-// This capability creates no AWS resources -- every statement it makes goes to Postgres through the
-// pg-db-admin Lambda, so there is no account, region or tagging to resolve here.
 locals {
-  block_name = data.ns_workspace.this.block_name
-  env_name   = data.ns_workspace.this.env_name
+  block_name      = data.ns_workspace.this.block_name
+  block_ref       = data.ns_workspace.this.block_ref
+  env_name        = data.ns_workspace.this.env_name
+  resource_suffix = random_string.resource_suffix.result
+  resource_name   = "${local.block_ref}-${local.resource_suffix}"
 }
