@@ -1,0 +1,19 @@
+org_name: nullstone
+name: aws-postgres-restore-access
+friendly_name: Postgres Restore
+description: |
+  Grants an application the Postgres access needed to restore a snapshot over a database. 
+  Creates an instance-admin restore role through pg-db-admin and publishes the connection and database names.
+category: capability
+subcategory: datastores
+provider_types:
+    - aws
+platform: postgres
+subplatform: ""
+appCategories:
+    - container
+    - serverless
+    - server
+is_public: true
+tool_name: opentofu
+source_url: https://github.com/nullstone-modules/aws-postgres-restore-access

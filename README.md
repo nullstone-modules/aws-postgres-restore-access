@@ -10,38 +10,14 @@ publishes the connection and the database names the restore needs.
 Everything else is ordinary app configuration. See
 [nullstone-io/pg-snapshot](https://github.com/nullstone-io/pg-snapshot) for the tool itself.
 
-## Usage
-
-Build an image with your migration tool in it:
-
-```dockerfile
-FROM nullstone/pg-snapshot:v1.0.0
-COPY --from=migrations /app/bin/migrate /usr/local/bin/
-COPY migrate.sh /app/migrate.sh
-```
-
-Deploy it as a job app running `restore` — the image's entrypoint is already `pgsnap` — then:
-
-1. Attach **this capability**, connected to the Postgres datastore you are restoring over.
-2. Attach **`aws-s3-access`** for the bucket the snapshots live in.
-3. Set the rest as environment variables on the app:
-
-```
-S3_BUCKET_URL     where the snapshots live
-S3_BUCKET_REGION
-MIGRATE_COMMAND   e.g. /app/migrate.sh
-SNAPSHOT          optional; pins a timestamp instead of taking the newest
-NUM_WORKERS       optional
-```
-
 ## What this capability provides
 
 | | |
 |---|---|
 | `POSTGRES_URL` (secret) | the restore role, connected to the instance's `postgres` database |
-| `TARGET_DATABASE` | the database the restore replaces |
-| `OWNER_ROLE` | the role restored objects are owned by |
-| `BACKUP_RETENTION` | how many previous versions of the target to keep |
+| `RESTORE_TARGET_DATABASE` | the database the restore replaces |
+| `RESTORE_OWNER_ROLE` | the role restored objects are owned by |
+| `RESTORE_BACKUP_RETENTION` | how many previous versions of the target to keep |
 
 The role holds membership in the managed superuser role (AWS's) and in the target's owner. It
 needs `CREATEDB` to create the staging database *and* to rename databases at all, ownership of
@@ -62,7 +38,3 @@ role exists nowhere else.
 
 A failure anywhere before the swap discards the staging database and leaves the target exactly as
 it was. A crash *during* the swap is recovered on the next run from the catalog itself.
-
-## License
-
-MIT
