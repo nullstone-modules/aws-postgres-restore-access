@@ -31,8 +31,3 @@ locals {
     "?sslmode=", urlencode(local.postgres_ssl_mode),
   ])
 }
-
-resource "random_password" "this" {
-  length  = 32
-  special = false
-}
