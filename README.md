@@ -4,9 +4,9 @@ Grants an app the Postgres access it needs to restore a scrubbed production snap
 database.
 
 This capability mints an instance-admin Postgres role through `pg-db-admin` — which Terraform
-cannot reach directly, since the database sits inside a VPC — opens the security group rules
-between the app and the database, and publishes the connection and the database names the restore
-needs.
+cannot reach directly, since the database sits inside a VPC — ensures the target database and its
+owner role exist, opens the security group rules between the app and the database, and publishes
+the connection and the database names the restore needs.
 
 Everything else is ordinary app configuration. See
 [nullstone-io/pg-snapshot](https://github.com/nullstone-io/pg-snapshot) for the tool itself.
@@ -18,7 +18,22 @@ Everything else is ordinary app configuration. See
 | `POSTGRES_URL` (secret) | the restore role, connected to the instance's `postgres` database |
 | `RESTORE_TARGET_DATABASE` | the database the restore replaces |
 | `RESTORE_OWNER_ROLE` | the role restored objects are owned by |
-| `RESTORE_BACKUP_RETENTION` | how many previous versions of the target to keep |
+
+`pg-snapshot` reads the last two as aliases for `TARGET_DATABASE` and `OWNER_ROLE`. Everything else
+the restore needs — the bucket, `MIGRATE_COMMAND`, `BACKUP_RETENTION` — is app configuration.
+
+## Variables
+
+| | |
+|---|---|
+| `target_database` | database the restore replaces. Defaults to the app name. |
+| `owner_role` | role that owns the restored objects. Defaults to the app name, matching how `pg-db-admin` names database owners. |
+
+Both accept `{{ NULLSTONE_STACK }}`, `{{ NULLSTONE_BLOCK }}`, `{{ NULLSTONE_APP }}`, and
+`{{ NULLSTONE_ENV }}` for interpolation.
+
+The database and the owner role are created only if they do not already exist. An existing database
+keeps its owner and settings untouched, and detaching this capability never drops either one.
 
 The role holds membership in the managed superuser role (AWS's) and in the target's owner. It
 needs `CREATEDB` to create the staging database *and* to rename databases at all, ownership of
