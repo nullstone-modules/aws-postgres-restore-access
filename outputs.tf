@@ -1,6 +1,10 @@
 output "env" {
   value = [
     {
+      name  = "RESTORE_TARGET_DATABASE"
+      value = local.target_database
+    },
+    {
       name  = "RESTORE_OWNER_ROLE"
       value = local.owner_role
     },

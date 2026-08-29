@@ -12,6 +12,22 @@ locals {
   security_group_id = var.app_metadata["security_group_id"]
 }
 
+variable "target_database" {
+  type    = string
+  default = ""
+
+  description = <<EOF
+Database the restore replaces. Defaults to the app name, matching how postgres-access names the
+database it creates.
+
+The following identifiers are supported for interpolation:
+  {{ NULLSTONE_STACK }}
+  {{ NULLSTONE_BLOCK }}
+  {{ NULLSTONE_APP }}
+  {{ NULLSTONE_ENV }}
+EOF
+}
+
 variable "owner_role" {
   type    = string
   default = ""
@@ -31,7 +47,7 @@ The following identifiers are supported for interpolation:
 EOF
 }
 
-// We are using ns_env_variables to interpolate owner_role.
+// We are using ns_env_variables to interpolate owner_role and target_database.
 // NULLSTONE_APP is a legacy alias for NULLSTONE_BLOCK.
 data "ns_env_variables" "names" {
   input_env_variables = tomap({
@@ -40,10 +56,12 @@ data "ns_env_variables" "names" {
     NULLSTONE_APP   = local.block_name
     NULLSTONE_ENV   = local.env_name
     OWNER_ROLE      = coalesce(var.owner_role, local.block_name)
+    TARGET_DATABASE = coalesce(var.target_database, local.block_name)
   })
   input_secrets = tomap({})
 }
 
 locals {
-  owner_role = data.ns_env_variables.names.env_variables["OWNER_ROLE"]
+  owner_role      = data.ns_env_variables.names.env_variables["OWNER_ROLE"]
+  target_database = data.ns_env_variables.names.env_variables["TARGET_DATABASE"]
 }
