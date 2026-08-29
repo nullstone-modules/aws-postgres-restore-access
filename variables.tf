@@ -8,6 +8,10 @@ EOF
   default = {}
 }
 
+locals {
+  security_group_id = var.app_metadata["security_group_id"]
+}
+
 variable "owner_role" {
   type    = string
   default = ""

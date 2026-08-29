@@ -3,9 +3,10 @@
 Grants an app the Postgres access it needs to restore a scrubbed production snapshot over a
 database.
 
-This capability does **one** thing: it mints an instance-admin Postgres role through
-`pg-db-admin` — which Terraform cannot reach directly, since the database sits inside a VPC — and
-publishes the connection and the database names the restore needs.
+This capability mints an instance-admin Postgres role through `pg-db-admin` — which Terraform
+cannot reach directly, since the database sits inside a VPC — opens the security group rules
+between the app and the database, and publishes the connection and the database names the restore
+needs.
 
 Everything else is ordinary app configuration. See
 [nullstone-io/pg-snapshot](https://github.com/nullstone-io/pg-snapshot) for the tool itself.
