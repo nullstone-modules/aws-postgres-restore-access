@@ -43,6 +43,27 @@ resource "aws_lambda_invocation" "superuser_role_member" {
   depends_on = [aws_lambda_invocation.role]
 }
 
+// GRANT fails outright if the owner role does not exist yet, which happens whenever this capability
+// is applied before the postgres-access capability that owns the database. Creating it here mirrors
+// the `database_owner` invocation in postgres-access, and the two are idempotent no-ops on each
+// other regardless of which runs first.
+//
+// No password and no attributes, deliberately. pg-db-admin skips the password update when the field
+// is blank, so this never disturbs an existing role's credentials, and its attribute handling only
+// ever adds attributes -- granting one here would leave it on the role permanently.
+resource "aws_lambda_invocation" "owner_role" {
+  function_name   = local.db_admin_func_name
+  lifecycle_scope = "CRUD"
+
+  input = jsonencode({
+    type = "roles"
+    data = {
+      name        = local.owner_role
+      useExisting = true
+    }
+  })
+}
+
 // The restored objects must end up owned by the role that owned them before the swap, or the
 // applications lose access to their own tables. pg_restore --role creates them owned correctly
 // from the start, which is why there is no REASSIGN OWNED pass anywhere in the restore.
@@ -59,5 +80,8 @@ resource "aws_lambda_invocation" "owner_role_member" {
     }
   })
 
-  depends_on = [aws_lambda_invocation.role]
+  depends_on = [
+    aws_lambda_invocation.role,
+    aws_lambda_invocation.owner_role
+  ]
 }
