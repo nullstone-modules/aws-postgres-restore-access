@@ -17,8 +17,7 @@ locals {
 }
 
 locals {
-  owner_role = coalesce(var.owner_role, local.block_name)
-  username   = local.resource_name
+  username = local.resource_name
 
   // Connects to `postgres` rather than the target: a session connected to a database cannot rename
   // it, and the swap renames two.
