@@ -7,6 +7,13 @@
 // sessions, and the ability to create non-trusted extensions. Membership in rds_superuser covers
 // all of it in one grant.
 //
+// REPLICATION is deliberately absent. Setting the attribute requires a true superuser, which the
+// RDS master user behind pg-db-admin is not, so asking for it fails the apply outright. The cost is
+// that pg-snapshot cannot rebind logical replication slots across the swap: it warns before the swap
+// and logs an error after, and the restore still succeeds. Slots left orphaned on a backup database
+// block that backup from being dropped later, so grant rds_replication separately if the target ever
+// gains a logical consumer.
+//
 // Production gating is structural rather than a flag: attach this capability only to apps in
 // environments that restore, and the role does not exist anywhere else.
 resource "aws_lambda_invocation" "role" {
@@ -19,8 +26,7 @@ resource "aws_lambda_invocation" "role" {
       name     = local.username
       password = random_password.this.result
       attributes = {
-        createDb    = true
-        replication = true
+        createDb = true
       }
       useExisting = true
     }
