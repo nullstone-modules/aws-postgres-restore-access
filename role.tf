@@ -27,6 +27,25 @@ resource "aws_lambda_invocation" "role" {
   })
 }
 
+// Re-verifies the restore role's password on every plan; pg-db-admin alters it only when a login
+// attempt fails. The `role` invocation above only fires when its input changes, so it cannot heal a
+// password reset outside this workspace (e.g. a restore rewriting globals).
+data "aws_lambda_invocation" "ensure_role_password" {
+  count = local.db_admin_ensure_password ? 1 : 0
+
+  function_name = local.db_admin_func_name
+
+  input = jsonencode({
+    type = "ensure_role_password"
+    data = {
+      name     = local.username
+      password = random_password.this.result
+    }
+  })
+
+  depends_on = [aws_lambda_invocation.role]
+}
+
 resource "aws_lambda_invocation" "superuser_role_member" {
   function_name   = local.db_admin_func_name
   lifecycle_scope = "CRUD"

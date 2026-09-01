@@ -13,6 +13,9 @@ locals {
   db_admin_version   = try(data.ns_connection.postgres.outputs.db_admin_version, "0.6")
   postgres_ssl_mode  = try(data.ns_connection.postgres.outputs.postgres_ssl_mode, "prefer")
 
+  // Defaults to false so plans never send ensure_role_password to a lambda that would reject it
+  db_admin_ensure_password = try(data.ns_connection.postgres.outputs.db_admin_ensure_password, false)
+
   // The managed superuser role differs by engine: rds_superuser on RDS and Aurora. Datastore
   // modules publish it as db_superuser_role.
   superuser_role = try(data.ns_connection.postgres.outputs.db_superuser_role, "rds_superuser")
