@@ -27,10 +27,15 @@ the restore needs — the bucket, `MIGRATE_COMMAND`, `BACKUP_RETENTION` — is a
 | | |
 |---|---|
 | `target_database` | database the restore replaces. Defaults to the app name. |
-| `owner_role` | role that owns the restored objects. Defaults to the app name, matching how `pg-db-admin` names database owners. |
 
-Both accept `{{ NULLSTONE_STACK }}`, `{{ NULLSTONE_BLOCK }}`, `{{ NULLSTONE_APP }}`, and
+It accepts `{{ NULLSTONE_STACK }}`, `{{ NULLSTONE_BLOCK }}`, `{{ NULLSTONE_APP }}`, and
 `{{ NULLSTONE_ENV }}` for interpolation.
+
+The role that owns the restored objects is always the target database name. That is how
+`pg-db-admin` names database owners and how `postgres-access` grants every application membership,
+so it is the one role restored tables can belong to and still be reachable by the apps. It is not
+configurable: naming any other role puts every restored table out of the applications' reach on the
+first swap.
 
 The database and the owner role are created only if they do not already exist. An existing database
 keeps its owner and settings untouched, and detaching this capability never drops either one.
